@@ -9,11 +9,6 @@ Install dependencies
 npm install
 ```
 
-Create a cache file
-```bash
-npm run init-cache
-```
-
 Run the development server:
 ```bash
 npm run dev
