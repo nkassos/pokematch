@@ -1,13 +1,10 @@
-import {PokeApiClient} from '@/services/PokeApiClient';
 import {PokemonService} from '@/services/PokemonService';
-import {readCacheFromFile} from '@/repository';
+import {drizzle} from 'drizzle-orm/better-sqlite3';
+import {PokemonRepository} from '@/repository/PokemonRepository';
 
-export const apiClient = new PokeApiClient(process.env.POKEMON_API_URL!);
-
-const cache = await readCacheFromFile(process.env.CACHE_FILE!);
-if(cache == null) throw Error('Invalid Cache');
+const db = drizzle(process.env.DB_FILE_NAME!);
+const repository = new PokemonRepository(db);
 
 export const pokemonService = new PokemonService(
-    apiClient,
-    cache
+    repository,
 );

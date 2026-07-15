@@ -1,4 +1,4 @@
-import {Pokemon} from '@/domain/Pokemon';
+import {Pokemon, PokemonPhoto} from '@/domain/Pokemon';
 
 export class PokeApiClient {
     constructor(readonly baseUrl: string) {
@@ -72,18 +72,20 @@ interface PokeApiOtherSprites {
 }
 
 function mapApiPokemonToPokemon(api: PokeApiPokemonDetail): Pokemon {
+    const photos = getPhotos(api);
+    const profilePhotoUrl = getProfilePhotoUrl(api);
     return {
         id: api.id,
         name: api.name,
         baseExperience: api.base_experience,
         height: api.height,
         weight: api.weight,
-        profilePhoto: getProfilePhoto(api),
-        additionalPhotos: getAdditionalPhotos(api),
+        profilePhoto: photos.find((photo) => photo.url === profilePhotoUrl)?.id ?? null,
+        photos,
     }
 }
 
-function getProfilePhoto(pokemon: PokeApiPokemonDetail): string | null {
+function getProfilePhotoUrl(pokemon: PokeApiPokemonDetail): string | null {
     return pokemon.sprites.other?.home?.front_default ??
         pokemon.sprites.other?.['official-artwork']?.front_default ??
         pokemon.sprites.front_default;
@@ -110,12 +112,14 @@ const spriteKeys: BaseSpriteKey[] = [
     "front_shiny_female",
 ]
 
-function getAdditionalPhotos(pokemon: PokeApiPokemonDetail): string[] {
-    return spriteKeys.reduce((acc: string[], key) => {
+function getPhotos(pokemon: PokeApiPokemonDetail): PokemonPhoto[] {
+    const profileUrl = getProfilePhotoUrl(pokemon);
+    const urls = new Set<string>(profileUrl ? [profileUrl] : []);
+    for (const key of spriteKeys) {
         const value = pokemon.sprites[key];
-        if(value) {
-            acc.push(value);
+        if (value) {
+            urls.add(value);
         }
-        return acc
-    }, []);
+    }
+    return Array.from(urls).map((url, index) => ({ id: index + 1, url }));
 }

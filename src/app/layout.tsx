@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Bangers, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -34,12 +35,26 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <header className="p-4">
+        <header className="flex items-end justify-between p-4">
           <h1
             className={`${bangers.className} text-4xl tracking-wide text-black dark:text-zinc-50`}
           >
             PokeMatch
           </h1>
+          <div className="flex gap-4">
+            <Link
+              href="/"
+              className="text-sm font-medium text-black underline dark:text-zinc-50"
+            >
+              Home
+            </Link>
+            <Link
+              href="/browse"
+              className="text-sm font-medium text-black underline dark:text-zinc-50"
+            >
+              Browse
+            </Link>
+          </div>
         </header>
         {children}
       </body>

@@ -1,33 +1,48 @@
-import {PokemonMatchCache} from '@/repository';
 import { Pokemon } from '@/domain/Pokemon';
-import {PokeApiClient} from '@/services/PokeApiClient';
+import {PokemonRepository} from '@/repository/PokemonRepository';
 
 export class PokemonService {
 
     constructor(
-        private readonly pokeApiClient: PokeApiClient,
-        private readonly cache: PokemonMatchCache) {
+        private readonly repository: PokemonRepository) {
     }
 
-    getById(id: number): Promise<Pokemon | null> {
-        return Promise.resolve(this.pokeApiClient.getPokemon(id) ?? null);
+    async getById(id: number): Promise<Pokemon | null> {
+        return await this.repository.getById(id) ?? null;
     }
 
     async getMatches(pokemon: Pokemon): Promise<Pokemon[]> {
-        const matchingIds = this.cache.get(pokemon.baseExperience) ?? [];
+        return this.repository.getByBaseExperience(pokemon.baseExperience);
+    }
 
-        const matches: Pokemon[] = []
-        for(const matchId of matchingIds) {
-            if(matchId != pokemon.id) {
-                const match = await this.pokeApiClient.getPokemon(matchId);
-                if(match != null) {
-                    matches.push(match);
-                }
-            }
+    async search(params: PokemonSearchParams): Promise<PokemonSearchResult> {
+        if(params.id) {
+            const pokemon = await this.repository.getById(params.id);
+            return pokemon ? {
+                pokemon: [pokemon],
+                totalCount: 1,
+            } : {
+                pokemon: [],
+                totalCount: 0,
+            };
+        } else {
+            const limit = params.limit ?? 0;
+            const offset = params.page ? (params.page - 1) * limit : undefined;
+            return this.repository.search(params.name ?? null, offset, limit);
         }
 
-        return matches;
     }
+
 }
 
+interface PokemonSearchResult {
+    pokemon: Pokemon[];
+    totalCount: number;
+}
 
+interface PokemonSearchParams {
+    name?: string,
+    id?: number,
+    page?: number,
+    limit?: number,
+}
